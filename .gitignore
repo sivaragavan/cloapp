@@ -14,3 +14,4 @@ tmp/
 .target
 .classpath
 .settings
+.project

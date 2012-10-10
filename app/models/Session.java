@@ -7,32 +7,26 @@ import org.json.JSONObject;
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Id;
 
-@Entity("users")
-public class User {
+@Entity("sessions")
+public class Session {
 
 	@Id
 	public ObjectId id;
-	public String email;
 	public String username;
-	public String password;
-	
-	public User() {
+
+	public Session() {
 
 	}
 
-	public User(String email, String username, String password) {
-		this.email = email;
+	public Session(String username) {
 		this.username = username;
-		this.password = password;
 	}
 
 	public String toString() {
 		JSONObject response = new JSONObject();
 		try {
 			response.put("id", id);
-			response.put("email", email);
 			response.put("username", username);
-			response.put("password", password);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}

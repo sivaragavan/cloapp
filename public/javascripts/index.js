@@ -1,12 +1,22 @@
 function onLoad() {
 
-	$("#createProject").click(function() {
+	$("#signup").click(function() {
 		$.ajax({
-			url : "/project/create?projectName=" + $('#projectName').val() + "&emailId=" + $('#emailId').val()
+			url : "/user/create?email=" + $('#email').val() + "&username=" + $('#username').val() + "&password=" + $('#password').val()
 		}).done(function (data) {
 			console.log("Create Response", data);
 			var Json = eval("(" + data + ")");
-			window.location.href = "/dashboard?projectId=" + Json.id + "&emailId=" + Json.emailId;
+			setCookie("cloapp-sessionId", Json.sessionId, 14);
+			//window.location.href = "/dashboard";
 		});
 	});
+}
+
+
+function setCookie(c_name,value,exdays)
+{
+	var exdate=new Date();
+	exdate.setDate(exdate.getDate() + exdays);
+	var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+	document.cookie=c_name + "=" + c_value;
 }

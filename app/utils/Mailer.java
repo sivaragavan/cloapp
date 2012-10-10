@@ -19,7 +19,7 @@ public class Mailer {
 		List<String> userIds = new ArrayList<String>();
 
 		while (it.hasNext()) {
-			userIds.add(it.next().emailId);
+			userIds.add(it.next().email);
 		}
 
 		String[] userArray = userIds.toArray(new String[0]);
@@ -35,7 +35,7 @@ public class Mailer {
 				.email();
 		mail.setSubject(subject);
 		
-		mail.addRecipient(user.emailId);
+		mail.addRecipient(user.email);
 		mail.addFrom("CodeFS Notification <codefs.noreply@gmail.com>");
 		mail.send(text, html);
 	}
