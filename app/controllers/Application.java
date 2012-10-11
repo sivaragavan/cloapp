@@ -1,30 +1,15 @@
 package controllers;
 
-import java.io.File;
-
-import models.Artifact;
-import models.Project;
+import models.Session;
 import models.User;
 
 import org.bson.types.ObjectId;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import play.Logger;
 import play.mvc.Controller;
-import play.mvc.Http.MultipartFormData;
-import play.mvc.Http.MultipartFormData.FilePart;
+import play.mvc.Http;
 import play.mvc.Result;
 import plugins.MongoPlugin;
-import plugins.S3Plugin;
-import utils.CodeFSConstants;
-import utils.Mailer;
-import views.html.upload;
-import views.html.emails.projectcreated;
-import views.html.emails.useradded;
-
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 
 public class Application extends Controller {
 
@@ -34,28 +19,63 @@ public class Application extends Controller {
 		return ok(views.html.index.render());
 	}
 
-	public static Result dashboard(String projectId) throws Exception {
-		Project project = MongoPlugin.ds.find(Project.class).field("_id")
-				.equal(new ObjectId(projectId)).get();
+	public static Result dashboard() throws Exception {
+		Http.Cookie cookie = request().cookies().get("cloapp-sessionId");
+		if (cookie != null && !cookie.value().equals("")) {
+			String sessionId = cookie.value();
+			Session s = MongoPlugin.ds.get(Session.class, new ObjectId(sessionId));
+			if (s == null)
+				return redirect(routes.Application.index());
 
-		return ok(views.html.dashboard.render(project));
+			User u = s.user;
+
+			return ok(views.html.dashboard.render(s, u));
+		} else {
+			return redirect(routes.Application.index());
+		}
 	}
 
 	// APIs
 
-	public static Result createUser(String email, String username,
-			String password) throws Exception {
-
-		User u = MongoPlugin.ds.find(User.class).field("emailId").equal(email)
-				.get();
+	public static Result createUser(String email, String username, String password) throws Exception {
+		User u = MongoPlugin.ds.find(User.class).field("email").equal(email).get();
 		if (u == null) {
-			u = new User(email, username, password);
-			MongoPlugin.ds.save(u);
+			u = MongoPlugin.ds.find(User.class).field("username").equal(username).get();
+			if (u == null) {
+				u = new User(email, username, password);
+				MongoPlugin.ds.save(u);
+				Session session = new Session(u);
+				MongoPlugin.ds.save(session);
+				return ok(u.toJSON().put("result", true).put("sessionId", session.sessionId).toString());
+			} else {
+				return ok(new JSONObject().put("result", false).put("message", "Username already in use").toString());
+			}
+		} else {
+			return ok(new JSONObject().put("result", false).put("message", "Email already in use").toString());
 		}
 
-		// Mailer.sendMail(CodeFSConstants.project_created,
-		// projectcreated.render(project).toString(), "Project Created", u);
+	}
 
-		return ok(u.toString());
+	public static Result loginUser(String username, String password) throws Exception {
+		User u = MongoPlugin.ds.find(User.class).field("username").equal(username).get();
+		if (u == null) {
+			return ok(new JSONObject().put("result", false).put("message", "Username/Password does not exist").toString());
+		} else {
+			System.out.println(u.toString());
+			if (u.password.equals(password)) {
+				Session session = new Session(u);
+				MongoPlugin.ds.save(session);
+				return ok(session.toJSON().put("result", true).toString());
+			} else {
+				return ok(new JSONObject().put("result", false).put("message", "Username/Password does not exist").toString());
+			}
+		}
+	}
+
+	public static Result logoutUser(String sessionId) throws Exception {
+		Session s = MongoPlugin.ds.get(Session.class, new ObjectId(sessionId));
+		if (s != null)
+			MongoPlugin.ds.delete(s);
+		return ok(new JSONObject().put("result", true).toString());
 	}
 }

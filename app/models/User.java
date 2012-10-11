@@ -15,7 +15,7 @@ public class User {
 	public String email;
 	public String username;
 	public String password;
-	
+
 	public User() {
 
 	}
@@ -26,17 +26,19 @@ public class User {
 		this.password = password;
 	}
 
-	public String toString() {
+	public JSONObject toJSON() {
 		JSONObject response = new JSONObject();
 		try {
 			response.put("id", id);
 			response.put("email", email);
-			response.put("username", username);
-			response.put("password", password);
+			response.put("username", username);			
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		return response.toString();
+		return response;
 	}
 
+	public String toString() {
+		return toJSON().toString();
+	}
 }

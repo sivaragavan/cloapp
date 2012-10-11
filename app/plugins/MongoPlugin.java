@@ -2,7 +2,9 @@ package plugins;
 
 import java.net.UnknownHostException;
 
-import models.Project;
+import models.Session;
+import models.User;
+
 import play.Application;
 import play.Logger;
 import play.Plugin;
@@ -32,14 +34,13 @@ public class MongoPlugin extends Plugin {
 			Logger.info("Initializing MongoDB");
 
 			Morphia morphia = new Morphia();
-			morphia.map(Project.class);
+			morphia.map(User.class);
+			morphia.map(Session.class);
 
-			MongoURI uri = new MongoURI(application.configuration().getString(
-					MONGOLAB_URI));
+			MongoURI uri = new MongoURI(application.configuration().getString(MONGOLAB_URI));
 			Mongo mongo = new Mongo(uri);
 
-			ds = morphia.createDatastore(mongo, uri.getDatabase(),
-					uri.getUsername(), uri.getPassword());
+			ds = morphia.createDatastore(mongo, uri.getDatabase(), uri.getUsername(), uri.getPassword());
 
 			Logger.info("Initialized MongoDB");
 

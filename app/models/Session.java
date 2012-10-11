@@ -6,31 +6,35 @@ import org.json.JSONObject;
 
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Id;
+import com.google.code.morphia.annotations.Reference;
 
 @Entity("sessions")
 public class Session {
 
 	@Id
-	public ObjectId id;
-	public String username;
+	public ObjectId sessionId;
+	@Reference
+	public User user = new User();
 
 	public Session() {
-
 	}
 
-	public Session(String username) {
-		this.username = username;
+	public Session(User user) {
+		this.user = user;
 	}
 
 	public String toString() {
+		return toJSON().toString();
+	}
+
+	public JSONObject toJSON() {
 		JSONObject response = new JSONObject();
 		try {
-			response.put("id", id);
-			response.put("username", username);
+			response.put("sessionId", sessionId);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		return response.toString();
+		return response;
 	}
 
 }
